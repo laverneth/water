@@ -44,25 +44,24 @@ public:
   void set_spread(const float&value);
   float get_spread() const;
 
-  
+
 protected:
 
   static void _bind_methods();
- 
+  
   struct WaterColumn  {    
-  public:
-    WaterColumn() ;
-    
-    void update(float& tension, float& damping) ;    
 
-    //Ref<Area2D> area_ ; 
+  public:
+    WaterColumn(float height) ;
+    void update(float& tension, float& damping) ;    
+    //Area2D area_ ; 
     float target_height_; 
     float height_ ;  
     float speed_ ;
-
   };
 
-  Vector<WaterColumn> columns_;
+
+  Vector<WaterColumn*> columns_;
 
   Rect2 rect_ ; 
   uint32_t ncols_ ; 
@@ -73,7 +72,6 @@ protected:
   float spread_ ; 
   bool size_changed_ ; 
   void _update() ; 
-
 };
 
 
