@@ -2,13 +2,13 @@
 
 #include <iostream>
  
-void Water::WaterColumn::update(float& tension, float& damping) {
+void WaterColumn::update(float& tension, float& damping) {
   float dh = target_height_ - height_ ; 
   speed_ = tension*dh -damping*speed_ ; 
   height_ += speed_ ; 
 }
 
-Water::WaterColumn::WaterColumn(const Vector2& pos, 
+WaterColumn::WaterColumn(const Vector2& pos, 
 				const Vector2& delta) : target_height_(delta.y), 
 						      height_(delta.y), 
 						      speed_(0.0){
@@ -19,9 +19,16 @@ Water::WaterColumn::WaterColumn(const Vector2& pos,
   // set matrix origin
   m[2] = pos; 
   add_shape(shape, m) ; 
+  connect("body_enter_shape", this, "body_enter_shape"); 
+
 }
 
-
+void WaterColumn::body_enter_shape ( int body_id, Object body, int body_shape, int area_shape ){
+  //Node2D obj = body.cast_to<Node2D>; 
+}
+// void WaterColumn::_bind_methods(){
+//   ObjectTypeDB::bind_method(_MD("body_enter_shape","bodyshape"),&WaterColumn::body_enter_shape);
+// }
 
 Water::Water() {
   set_size(Rect2(0.,0.,100.,20.));
@@ -32,6 +39,7 @@ Water::Water() {
   spread_  = 0.25 ; 
   size_changed_ = true; 
   _update();
+  // columns_.clear();
   //set_fixed_process(true);
 }
 
@@ -73,16 +81,40 @@ void Water::_notification(int p_what) {
       break;
   } break;
 
-  case  NOTIFICATION_FIXED_PROCESS: {
+  case NOTIFICATION_PROCESS: { 
+    int n = columns_.size() ; 
+    double l[n] ; 
+    double r[n] ; 
+    for(int i=0; i<n; ++i){
+      columns_[i]->update(tension_, damping_) ; 
+    }
+    for(int iter=0; iter<8; ++iter){
+      for(int i=0; i<n; ++i){
+	if(i>0){
+	  l[i] = spread_*(columns_[i]->height_ - columns_[i-1]->height_) ; 
+	  columns_[i-1]->speed_ += l[i];
+	}
+	if(i<n-1){
+	  r[i] = spread_*(columns_[i]->height_ - columns_[i+1]->height_) ; 
+	  columns_[i+1]->speed_ += r[i];
+	}
+      }
+      for(int i=0; i<n; ++i){
+	if(i>0){
+	  columns_[i-1]->height_ += l[i];
+	}
+	if(i<n-1){
+	  columns_[i+1]->height_ += r[i];
+	}
+      }
+    }
 
-  } break ; 
-
+  }break ; 
+    
   case NOTIFICATION_DRAW: { 
     Vector2 pos = rect_.pos ; 
     for(uint32_t i=0; i<ncols_; ++i){
-      Color color(color_); 
-      color.a = i/float(ncols_) ; 
-      draw_rect(Rect2(pos, Vector2(resolution_, columns_[i]->height_)), color);
+      draw_rect(Rect2(pos, Vector2(resolution_, columns_[i]->height_)), color_);
       pos.x += resolution_ ; 
     }
     
@@ -148,6 +180,7 @@ float Water::get_spread() const {
 }
 
 void Water::_bind_methods() {
+
   ObjectTypeDB::bind_method(_MD("set_size","size"),&Water::set_size);
   ObjectTypeDB::bind_method(_MD("get_size"),&Water::get_size);
   ADD_PROPERTY( PropertyInfo(Variant::RECT2,"Size"),_SCS("set_size"),_SCS("get_size"));
