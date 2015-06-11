@@ -1,7 +1,8 @@
 #include "water.h"
 
 #include <iostream>
- 
+#include "scene/2d/physics_body_2d.h"
+
 void WaterColumn::update(float& tension, float& damping) {
   float dh = target_height_ - height_ ; 
   speed_ = tension*dh -damping*speed_ ; 
@@ -9,9 +10,9 @@ void WaterColumn::update(float& tension, float& damping) {
 }
 
 WaterColumn::WaterColumn(const Vector2& pos, 
-				const Vector2& delta) : target_height_(delta.y), 
-						      height_(delta.y), 
-						      speed_(0.0){
+			 const Vector2& delta) : target_height_(delta.y), 
+						 height_(delta.y), 
+						 speed_(0.0){
   Ref<RectangleShape2D> shape = memnew(RectangleShape2D); 
   shape->set_extents(delta) ; 
   
@@ -23,12 +24,17 @@ WaterColumn::WaterColumn(const Vector2& pos,
 
 }
 
-void WaterColumn::body_enter_shape ( int body_id, Object body, int body_shape, int area_shape ){
-  //Node2D obj = body.cast_to<Node2D>; 
+void WaterColumn::body_enter_shape ( int body_id, Object* body, int body_shape, int area_shape ){
+  RigidBody2D *obj = body->cast_to<RigidBody2D>();
+  if(obj){ 
+    speed_ = (obj-> get_linear_velocity().length());
+  }
+  
 }
-// void WaterColumn::_bind_methods(){
-//   ObjectTypeDB::bind_method(_MD("body_enter_shape","bodyshape"),&WaterColumn::body_enter_shape);
-// }
+
+void WaterColumn::_bind_methods(){
+  ObjectTypeDB::bind_method(_MD("body_enter_shape","bodyshape"),&WaterColumn::body_enter_shape);
+}
 
 Water::Water() {
   set_size(Rect2(0.,0.,100.,20.));
@@ -39,8 +45,8 @@ Water::Water() {
   spread_  = 0.25 ; 
   size_changed_ = true; 
   _update();
-  // columns_.clear();
-  //set_fixed_process(true);
+
+  set_fixed_process(true);
 }
 
 void Water::_update() {
@@ -81,7 +87,7 @@ void Water::_notification(int p_what) {
       break;
   } break;
 
-  case NOTIFICATION_PROCESS: { 
+  case NOTIFICATION_FIXED_PROCESS: { 
     int n = columns_.size() ; 
     double l[n] ; 
     double r[n] ; 
@@ -108,6 +114,8 @@ void Water::_notification(int p_what) {
 	}
       }
     }
+  
+    update() ; 
 
   }break ; 
     
@@ -194,7 +202,7 @@ void Water::_bind_methods() {
   ADD_PROPERTY( PropertyInfo(Variant::COLOR,"Color"),_SCS("set_color"),_SCS("get_color"));
 
 
- ObjectTypeDB::bind_method(_MD("set_damping","damping"),&Water::set_damping);
+  ObjectTypeDB::bind_method(_MD("set_damping","damping"),&Water::set_damping);
   ObjectTypeDB::bind_method(_MD("get_damping"),&Water::get_damping);
   ADD_PROPERTY( PropertyInfo(Variant::REAL,"Damping"),_SCS("set_damping"),_SCS("get_damping"));
 
