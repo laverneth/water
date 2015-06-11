@@ -10,7 +10,7 @@
 #include "scene/2d/area_2d.h"
 #include "scene/2d/canvas_modulate.h"
 #include "scene/resources/shape_2d.h"
-
+#include "scene/resources/rectangle_shape_2d.h"
 
 class Water : public Node2D {
   OBJ_TYPE(Water, Node2D);
@@ -49,12 +49,11 @@ protected:
 
   static void _bind_methods();
   
-  struct WaterColumn  {    
+  struct WaterColumn : public Area2D {    
 
   public:
-    WaterColumn(float height) ;
+    WaterColumn(const Vector2&, const Vector2& delta); 
     void update(float& tension, float& damping) ;    
-    //Area2D area_ ; 
     float target_height_; 
     float height_ ;  
     float speed_ ;
