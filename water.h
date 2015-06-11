@@ -12,6 +12,19 @@
 #include "scene/resources/shape_2d.h"
 #include "scene/resources/rectangle_shape_2d.h"
 
+class WaterColumn : public Area2D {    
+  OBJ_TYPE(WaterColumn, Area2D);
+public:
+  WaterColumn(const Vector2&, const Vector2& delta); 
+  void update(float& tension, float& damping) ;    
+  void body_enter_shape ( int body_id, Object body, int body_shape, int area_shape ); 
+  float target_height_; 
+  float height_ ;  
+  float speed_ ;
+protected:
+  //static void _bind_methods();
+};
+
 class Water : public Node2D {
   OBJ_TYPE(Water, Node2D);
 
@@ -45,19 +58,12 @@ public:
   float get_spread() const;
 
 
+
 protected:
 
   static void _bind_methods();
   
-  struct WaterColumn : public Area2D {    
 
-  public:
-    WaterColumn(const Vector2&, const Vector2& delta); 
-    void update(float& tension, float& damping) ;    
-    float target_height_; 
-    float height_ ;  
-    float speed_ ;
-  };
 
 
   Vector<WaterColumn*> columns_;
