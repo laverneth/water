@@ -1,5 +1,5 @@
 #include "water.h"
-#include "scene/resources/rectangle_shape_2d.h"
+
 #include <iostream>
  
 void Water::WaterColumn::update(float& tension, float& damping) {
@@ -8,9 +8,17 @@ void Water::WaterColumn::update(float& tension, float& damping) {
   height_ += speed_ ; 
 }
 
-Water::WaterColumn::WaterColumn(float height) : target_height_(height), 
-						height_(height), 
-						speed_(0.0){
+Water::WaterColumn::WaterColumn(const Vector2& pos, 
+				const Vector2& delta) : target_height_(delta.y), 
+						      height_(delta.y), 
+						      speed_(0.0){
+  Ref<RectangleShape2D> shape = memnew(RectangleShape2D); 
+  shape->set_extents(delta) ; 
+  
+  Matrix32 m ; 
+  // set matrix origin
+  m[2] = pos; 
+  add_shape(shape, m) ; 
 }
 
 
@@ -25,6 +33,7 @@ Water::Water() {
   size_changed_ = true; 
   _update();
   columns_.clear();
+  //set_fixed_process(true);
 }
 
 void Water::_update() {
@@ -42,21 +51,12 @@ void Water::_update() {
     float x = rect_.pos.x ; 
     float y = rect_.pos.y ; 
     for(uint32_t i=0; i<ncols_; ++i){
-      columns_.push_back(memnew(WaterColumn(dy))) ; 
- 
-      RectangleShape2D shape ;
-      // set rectangle sizes
-      shape.set_extents(Vector2(resolution_, dy)) ; 
-
-      Matrix32 m ; 
-      // set matrix origin
-      m[2] = Vector2(x, y) ; 
-      //columns_[i]->area_.add_shape(, m) ; 
-      
+      WaterColumn* col = memnew(WaterColumn(Vector2(x,y), Vector2(resolution_, dy))); 
+      columns_.push_back(col) ; 
+      add_child(col) ;       
       x += resolution_ ; 
     }
   }
-
   update() ; 
 }
 
@@ -73,7 +73,11 @@ void Water::_notification(int p_what) {
     if (!is_inside_tree())
       break;
   } break;
-    
+
+  case  NOTIFICATION_FIXED_PROCESS: {
+
+  } break ; 
+
   case NOTIFICATION_DRAW: { 
     Vector2 pos = rect_.pos ; 
     for(uint32_t i=0; i<ncols_; ++i){
