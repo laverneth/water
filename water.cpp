@@ -32,7 +32,6 @@ Water::Water() {
   spread_  = 0.25 ; 
   size_changed_ = true; 
   _update();
-  columns_.clear();
   //set_fixed_process(true);
 }
 
