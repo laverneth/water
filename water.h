@@ -17,12 +17,12 @@ class WaterColumn : public Area2D {
 public:
   WaterColumn(const Vector2&, const Vector2& delta); 
   void update(float& tension, float& damping) ;    
-  void body_enter_shape ( int body_id, Object body, int body_shape, int area_shape ); 
+  void body_enter_shape ( int body_id, Object* body, int body_shape, int area_shape ); 
   float target_height_; 
   float height_ ;  
   float speed_ ;
 protected:
-  //static void _bind_methods();
+  static void _bind_methods();
 };
 
 class Water : public Node2D {
