@@ -11,6 +11,9 @@
 #include "scene/2d/canvas_modulate.h"
 #include "scene/resources/shape_2d.h"
 #include "scene/resources/rectangle_shape_2d.h"
+#include "scene/resources/texture.h"
+#include "scene/resources/color_ramp.h"
+
 
 class WaterColumn : public Area2D {    
   OBJ_TYPE(WaterColumn, Area2D);
@@ -24,6 +27,7 @@ public:
 protected:
   static void _bind_methods();
 };
+
 
 class Water : public Node2D {
   OBJ_TYPE(Water, Node2D);
@@ -58,13 +62,15 @@ public:
   float get_spread() const;
 
 
+  void set_texture(const Ref<Texture>& p_texture);
+  Ref<Texture> get_texture() const;
+
+
 
 protected:
 
   static void _bind_methods();
   
-
-
 
   Vector<WaterColumn*> columns_;
 
@@ -75,6 +81,8 @@ protected:
   float damping_ ; 
   float tension_ ;
   float spread_ ; 
+  Ref<Texture> texture;
+
   bool size_changed_ ; 
   void _update() ; 
 };
