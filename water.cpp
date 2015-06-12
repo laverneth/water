@@ -5,7 +5,7 @@
 
 void WaterColumn::update(float& tension, float& damping) {
   float dh = target_height_ - height_ ; 
-  speed_ = tension*dh -damping*speed_ ; 
+  speed_ += tension*dh -damping*speed_ ; 
   height_ += speed_ ; 
 }
 
@@ -27,7 +27,8 @@ WaterColumn::WaterColumn(const Vector2& pos,
 void WaterColumn::body_enter_shape ( int body_id, Object* body, int body_shape, int area_shape ){
   RigidBody2D *obj = body->cast_to<RigidBody2D>();
   if(obj){ 
-    speed_ = (obj-> get_linear_velocity().length());
+    Vector2 v = obj-> get_linear_velocity(); 
+    speed_ = 0.01*v.length();
   }
   
 }
@@ -120,12 +121,36 @@ void Water::_notification(int p_what) {
   }break ; 
     
   case NOTIFICATION_DRAW: { 
+    if (texture.is_null())
+      return;
+    
     Vector2 pos = rect_.pos ; 
-    for(uint32_t i=0; i<ncols_; ++i){
-      draw_rect(Rect2(pos, Vector2(resolution_, columns_[i]->height_)), color_);
+
+    Vector<Color> colors ;
+    colors.push_back(color_) ; 
+    colors.push_back(color_) ; 
+    colors.push_back(color_) ;
+    colors.push_back(color_) ; 
+
+    for(uint32_t i=0; i<ncols_-1; ++i){
+      Vector<Vector2> pts ; 
+      pts.push_back(pos); 
+      pts.push_back(Vector2(pos.x+resolution_, pos.y)); 
+      pts.push_back(Vector2(pos.x+resolution_, pos.y-columns_[i+1]->height_));  
+      pts.push_back(Vector2(pos.x, pos.y-columns_[i]->height_)); 
+      Vector<Vector2> uvs ;
+
+    uvs.push_back(Vector2(1,1)); 
+    uvs.push_back(Vector2(0,1));
+    uvs.push_back(Vector2(0,0)); 
+    uvs.push_back(Vector2(1,0));  
+      
+      
+   
+      draw_polygon (pts, colors, uvs, texture); 
       pos.x += resolution_ ; 
     }
-    
+  
   } break ; 
     
   }
@@ -186,6 +211,17 @@ void Water::set_spread(const float& val) {
 float Water::get_spread() const {
   return spread_ ; 
 }
+void Water::set_texture(const Ref<Texture>& p_texture) {
+
+	texture=p_texture;
+}
+
+Ref<Texture> Water::get_texture() const {
+
+	return texture;
+}
+
+
 
 void Water::_bind_methods() {
 
@@ -213,5 +249,12 @@ void Water::_bind_methods() {
   ObjectTypeDB::bind_method(_MD("set_spread","spread"),&Water::set_spread);
   ObjectTypeDB::bind_method(_MD("get_spread"),&Water::get_spread);
   ADD_PROPERTY( PropertyInfo(Variant::REAL,"Spread"),_SCS("set_spread"),_SCS("get_spread"));
+
+
+  ObjectTypeDB::bind_method(_MD("set_texture:Texture","texture"),&Water::set_texture);
+  ObjectTypeDB::bind_method(_MD("get_texture:Texture"),&Water::get_texture);
+  
+  ADD_PROPERTY(PropertyInfo(Variant::OBJECT,"config/texture",PROPERTY_HINT_RESOURCE_TYPE,"Texture"),_SCS("set_texture"),_SCS("get_texture"));
+  
 }
 
