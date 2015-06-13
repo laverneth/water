@@ -18,14 +18,16 @@
 class WaterColumn : public Area2D {    
   OBJ_TYPE(WaterColumn, Area2D);
 public:
-  WaterColumn(const Vector2&, const Vector2& delta); 
+  WaterColumn(const Vector2&, const Vector2& delta, const Vector2& drag); 
   void update(float& tension, float& damping) ;    
   void body_enter_shape ( int body_id, Object* body, int body_shape, int area_shape ); 
   float target_height_; 
   float height_ ;  
   float speed_ ;
+  Vector2 drag_  ;
 protected:
   static void _bind_methods();
+ 
 };
 
 
@@ -60,7 +62,9 @@ public:
 
   void set_spread(const float&value);
   float get_spread() const;
-
+  
+  void set_drag(const Vector2&value);
+  Vector2 get_drag() const;
 
   void set_texture(const Ref<Texture>& p_texture);
   Ref<Texture> get_texture() const;
@@ -81,6 +85,7 @@ protected:
   float damping_ ; 
   float tension_ ;
   float spread_ ; 
+  Vector2 drag_ ;
   Ref<Texture> texture;
 
   bool size_changed_ ; 
