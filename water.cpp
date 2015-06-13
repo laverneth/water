@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include "scene/2d/physics_body_2d.h"
-
+#include "math_funcs.h"
 void WaterColumn::update(float& tension, float& damping) {
   float dh = target_height_ - height_ ; 
   speed_ += tension*dh -damping*speed_ ; 
@@ -10,9 +10,11 @@ void WaterColumn::update(float& tension, float& damping) {
 }
 
 WaterColumn::WaterColumn(const Vector2& pos, 
-			 const Vector2& delta) : target_height_(delta.y), 
-						 height_(delta.y), 
-						 speed_(0.0){
+			 const Vector2& delta, 
+			 const Vector2& drag) : target_height_(delta.y), 
+					      height_(delta.y), 
+					      speed_(0.0), 
+					      drag_(drag){
   Ref<RectangleShape2D> shape = memnew(RectangleShape2D); 
   shape->set_extents(delta) ; 
   
@@ -28,7 +30,7 @@ void WaterColumn::body_enter_shape ( int body_id, Object* body, int body_shape, 
   RigidBody2D *obj = body->cast_to<RigidBody2D>();
   if(obj){ 
     Vector2 v = obj-> get_linear_velocity(); 
-    speed_ = 0.01*v.length();
+    speed_ = drag_.x*Math::abs(v.x) +drag_.y*Math::abs(v.y); 
   }
   
 }
@@ -44,6 +46,7 @@ Water::Water() {
   damping_ = 0.025;
   tension_ = 0.025; 
   spread_  = 0.25 ; 
+  drag_ = Vector2(0.01, 0.03) ; 
   size_changed_ = true; 
   _update();
 
@@ -65,7 +68,7 @@ void Water::_update() {
     float x = rect_.pos.x ; 
     float y = rect_.pos.y ; 
     for(uint32_t i=0; i<ncols_; ++i){
-      WaterColumn* col = memnew(WaterColumn(Vector2(x,y), Vector2(resolution_, dy))); 
+      WaterColumn* col = memnew(WaterColumn(Vector2(x,y), Vector2(resolution_, dy), drag_)); 
       columns_.push_back(col) ; 
       add_child(col) ;       
       x += resolution_ ; 
@@ -211,6 +214,20 @@ void Water::set_spread(const float& val) {
 float Water::get_spread() const {
   return spread_ ; 
 }
+
+
+Vector2 Water::get_drag() const {
+  return drag_ ; 
+}
+void Water::set_drag(const Vector2& val) {
+  drag_ = val ;
+  for(int i=0; i<columns_.size(); ++i){
+    columns_[i]->drag_ = drag_;
+  }
+}
+
+
+
 void Water::set_texture(const Ref<Texture>& p_texture) {
 
 	texture=p_texture;
@@ -249,6 +266,10 @@ void Water::_bind_methods() {
   ObjectTypeDB::bind_method(_MD("set_spread","spread"),&Water::set_spread);
   ObjectTypeDB::bind_method(_MD("get_spread"),&Water::get_spread);
   ADD_PROPERTY( PropertyInfo(Variant::REAL,"Spread"),_SCS("set_spread"),_SCS("get_spread"));
+
+  ObjectTypeDB::bind_method(_MD("set_drag","drag"),&Water::set_drag);
+  ObjectTypeDB::bind_method(_MD("get_drag"),&Water::get_drag);
+  ADD_PROPERTY( PropertyInfo(Variant::VECTOR2,"Drag"),_SCS("set_drag"),_SCS("get_drag"));
 
 
   ObjectTypeDB::bind_method(_MD("set_texture:Texture","texture"),&Water::set_texture);
