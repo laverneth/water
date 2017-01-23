@@ -93,8 +93,8 @@ void Water::_notification(int p_what) {
 
   case NOTIFICATION_FIXED_PROCESS: { 
     int n = columns_.size() ; 
-    double l[n] ; 
-    double r[n] ; 
+    double* l = new double[n] ; 
+    double* r = new double[n] ; 
     for(int i=0; i<n; ++i){
       columns_[i]->update(tension_, damping_) ; 
     }
@@ -118,8 +118,10 @@ void Water::_notification(int p_what) {
 	}
       }
     }
-  
-    update() ; 
+	  
+  delete l ; 
+  delete r;	
+  update() ; 
 
   }break ; 
     
