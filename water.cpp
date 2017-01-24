@@ -22,7 +22,7 @@ WaterColumn::WaterColumn(const Vector2& pos,
   // set matrix origin
   m[2] = pos; 
   add_shape(shape, m) ; 
-  connect("body_enter_shape", this, "body_enter_shape"); 
+  connect("body_enter_shape", this, "body_shape_entered"); 
 
 }
 
